@@ -14,10 +14,18 @@ class App {
         const app = (0, express_1.default)();
         app.use(express_1.default.static(path_1.default.join(__dirname, '../client')));
         this.server = new http_1.default.Server(app);
-        const io = new socket_io_1.default.Server(this.server);
-        io.on('connection', function (socket) {
+        this.io = new socket_io_1.default.Server(this.server);
+        this.io.on('connection', function (socket) {
             console.log(`A user has been connected: ` + socket.id);
+            socket.emit("message", "Hello " + socket.id);
+            socket.broadcast.emit("message", "Evevry body say hello to " + socket.id);
+            socket.on('disconnect', function () {
+                console.log("Socket has disconnected ");
+            });
         });
+        setInterval(() => {
+            this.io.emit('random', Math.floor(Math.random() * 10));
+        }, 1000);
     }
     Start() {
         this.server.listen(this.port, () => {

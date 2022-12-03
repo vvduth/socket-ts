@@ -2,3 +2,25 @@
 * <script src="socket.io/socket.io.js"></script>
 * is the script we pull direactly from server-ts, socket.top has some built in code that loacted in /socket.io path 
 * we have the option to disable that as well 
+* generate client js from ts, the client in t dist will be jsm the client in src will be written in ts
+
+# Communication between client and server socket.io
+* connect and disconnect: we already knwo and the name say themselves
+* close or refesahs, this disconnect event will be fired
+* 
+
+# Emitting messase:
+* client connect to the server, then the server will send a message hello with the socket id
+
+# How to get the  get the emit message from server side
+* In the server code, socket.emit, define the protocol fo rthe client side to notice, while im typing this, my example is message
+* In client, this.socket.on, after that put the same protocol on the sevrer, follow by a fuinction with the param, the param is the content of the message we want ot pass from the server
+* We can literally pass anything, string, obj, etc,...
+
+# Broadcast
+* sne dmess to everyong who is connected, send to all connected msocket except for itself
+
+# What about io.emit
+* we learnt about socket.emit
+* now  this.io.emit
+* example: from the server we genrate a random number every second and we send it to all the connected clients (sockets)
