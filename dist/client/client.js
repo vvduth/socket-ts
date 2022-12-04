@@ -8,7 +8,7 @@ class Client {
         });
         this.socket.on("random", function (message) {
             console.log(message);
-            document.body.innerHTML += "Winnging numebr is " + message + "<br/>";
+            document.body.innerHTML += "Winnging number is " + message + "<br/>";
         });
     }
 }
