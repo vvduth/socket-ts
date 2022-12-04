@@ -6,26 +6,32 @@ class Client {
 
         this.socket.on('connect', function () {
             console.log('connect')
-            document.body.innerHTML = ''
         })
 
         this.socket.on('disconnect', function (message: any) {
             console.log('disconnect ' + message)
-            document.body.innerHTML +=
-                'Disconnected from Server : ' + message + '<br/>'
-            //location.reload();
+            location.reload()
         })
+    }
 
-        this.socket.on('message', (message: any) => {
-            console.log(message)
-            document.body.innerHTML += message + '<br/>'
-            this.socket.emit('message', 'Thanks for having me')
-        })
-
-        this.socket.on('random', function (message: any) {
-            console.log(message)
-            document.body.innerHTML += message + '<br/>'
-        })
+    public showGame(id: number) {
+        switch (id) {
+            case 0:
+                $('#gamePanel1').fadeOut(100)
+                $('#gamePanel2').fadeOut(100)
+                $('#gamePanel0').delay(100).fadeIn(100)
+                break
+            case 1:
+                $('#gamePanel0').fadeOut(100)
+                $('#gamePanel2').fadeOut(100)
+                $('#gamePanel1').delay(100).fadeIn(100)
+                break
+            case 2:
+                $('#gamePanel0').fadeOut(100)
+                $('#gamePanel1').fadeOut(100)
+                $('#gamePanel2').delay(100).fadeIn(100)
+                break
+        }
     }
 }
 

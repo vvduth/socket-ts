@@ -32,3 +32,6 @@
 * on :listening to event 
 * emit: send message abck and forth
 * broadcast: you knwo it bra
+
+# The game notes
+* chat fucntrionality 
