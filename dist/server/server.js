@@ -21,10 +21,20 @@ class App {
             console.log(`A user has been connected: ` + socket.id);
             // assgin new connection's socket id with a number
             this.game.luckyNumbers[socket.id] = Math.floor(Math.random() * 10);
+            // Emitting teh message from server to client side
             socket.emit("message", "Hello " + socket.id + ", your lucky number is " + this.game.luckyNumbers[socket.id]);
             socket.broadcast.emit("message", "Evevry body say hello to " + socket.id);
             socket.on('disconnect', function () {
                 console.log("Socket has disconnected ");
+            });
+            // server can receive messsage from client too
+            socket.on("message", function (message) {
+                console.log(message);
+            });
+            // get teh mess from client and thansk respone to client
+            socket.on("thanksresponse", function (message) {
+                console.log(message);
+                socket.emit("noproblem", "No problem dude, any time");
             });
         });
         setInterval(() => {
@@ -38,7 +48,7 @@ class App {
                 });
             }
             this.io.emit("random", randomNumber);
-        }, 1000);
+        }, 10000);
     }
     Start() {
         this.server.listen(this.port, () => {

@@ -24,3 +24,11 @@
 * we learnt about socket.emit
 * now  this.io.emit
 * example: from the server we genrate a random number every second and we send it to all the connected clients (sockets)
+
+# We can implenet connect, disconnect and emit events from client too
+* so basically from what I have learnt, event aka messages can be pass from server to client the client to sevrer, back and forth.
+* we need to implement the event from on side with this.socket.on/emit... and on the other side, we need to create a listener to listen and receive mess from the event that been fired.
+* use specific event string to make it easier to manage the system
+* on :listening to event 
+* emit: send message abck and forth
+* broadcast: you knwo it bra
