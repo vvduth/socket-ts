@@ -18,42 +18,15 @@ class App {
         this.io = new socket_io_1.default.Server(this.server);
         this.game = new luckyNumbersGame_1.default();
         this.io.on('connection', (socket) => {
-            console.log(`A user has been connected: ` + socket.id);
-            // assgin new connection's socket id with a number
-            this.game.luckyNumbers[socket.id] = Math.floor(Math.random() * 10);
-            // Emitting teh message from server to client side
-            socket.emit("message", "Hello " + socket.id + ", your lucky number is " + this.game.luckyNumbers[socket.id]);
-            socket.broadcast.emit("message", "Evevry body say hello to " + socket.id);
+            console.log('a user connected : ' + socket.id);
             socket.on('disconnect', function () {
-                console.log("Socket has disconnected ");
-            });
-            // server can receive messsage from client too
-            socket.on("message", function (message) {
-                console.log(message);
-            });
-            // get teh mess from client and thansk respone to client
-            socket.on("thanksresponse", function (message) {
-                console.log(message);
-                socket.emit("noproblem", "No problem dude, any time");
+                console.log('socket disconnected : ' + socket.id);
             });
         });
-        setInterval(() => {
-            let randomNumber = Math.floor(Math.random() * 10);
-            let winners = this.game.GetWinners(randomNumber);
-            if (winners.length) {
-                winners.forEach(w => {
-                    // w here is the socket id thet has the winninng number
-                    // sending mess to one specific socket 
-                    this.io.to(w).emit("message", "*** You are the winner ***");
-                });
-            }
-            this.io.emit("random", randomNumber);
-        }, 10000);
     }
     Start() {
-        this.server.listen(this.port, () => {
-            console.log(`Server listening on port  hello world ${this.port}.`);
-        });
+        this.server.listen(this.port);
+        console.log(`Server listening on port ${this.port}.`);
     }
 }
 new App(port).Start();
