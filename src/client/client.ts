@@ -3,14 +3,25 @@ type ChatMessage = {
     from : String ,
 }
 
+type ScreenName = {
+    name: string
+    abbreviation: string
+}
+
 class Client {
     private socket: SocketIOClient.Socket
+    private screenName!: ScreenName
 
     constructor() {
         this.socket = io()
 
         this.socket.on('connect', function () {
             console.log('connect')
+        })
+
+        this.socket.on('screenName', (screenName: ScreenName) =>  {
+            this.screenName  = screenName ; 
+            $('.screenName').text(this.screenName.name) ; 
         })
 
         this.socket.on('disconnect', function (message: any) {
@@ -52,11 +63,11 @@ class Client {
             // as written in the note this is emiting and also define event is chatMessage
             this.socket.emit('chatMessage', <ChatMessage>{
                 message: messageText, 
-                from : this.socket.id.toString()
+                from : this.screenName.abbreviation, 
             })
             // this will append in to the user to send the messges
             $('#messages').append(
-                "<li><span class='float-left'><span class='circle'>Sender</span></span><div class='myMessage'>" +
+                "<li><span class='float-left'><span class='circle'> " + this.screenName.abbreviation + " </span></span><div class='myMessage'>" +
                 messageText +
                 '</div></li>'
             )
