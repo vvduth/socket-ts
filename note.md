@@ -18,7 +18,7 @@
 * We can literally pass anything, string, obj, etc,...
 
 # Broadcast
-* sne dmess to everyong who is connected, send to all connected msocket except for itself
+* send mess to everyong who is connected, send to all connected msocket except for itself
 
 # What about io.emit
 * we learnt about socket.emit
@@ -35,3 +35,6 @@
 
 # The game notes
 * chat fucntrionality 
+* so here is the basic idea of how chat functionality work: 
+* one user press send button from the client, the event will trigger sendMess() function from client which will execute the socket.emit('chatMessage'), after that, it will form the message including the content and from, send it message to the server.ts
+* the server wiill receive the event through socket.on('chatMessage'), receive the message from the user and then inside the socket.on(), sever will socket.emit('chatMessage') back to other users

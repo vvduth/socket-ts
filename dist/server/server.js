@@ -24,7 +24,11 @@ class App {
             socket.on('disconnect', function () {
                 console.log('socket disconnected : ' + socket.id);
             });
-            socket.on('chatMessage');
+            // This shit will probbally receive event chatMessages from client
+            socket.on('chatMessage', function (chatMessage) {
+                console.log("receive event from the client bra");
+                socket.broadcast.emit('chatMessage', chatMessage);
+            });
         });
     }
     Start() {
