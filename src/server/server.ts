@@ -4,6 +4,7 @@ import http from 'http'
 import socketIO from 'socket.io'
 import LuckyNumbersGame from './luckyNumbersGame'
 import RandomScreenNAmeGenerator from './randomScreenNameGenerator'
+import Player from './player'
 
 const port: number = 3000
 
@@ -19,6 +20,9 @@ class App {
     private io: socketIO.Server
     private game: LuckyNumbersGame
     private randomScreenNameGenerator: RandomScreenNAmeGenerator 
+    // hash map probably
+    private players: {[id: string]: Player} = {} 
+
     
 
     constructor(port: number) {
@@ -51,14 +55,20 @@ class App {
 
             let screenName = this.randomScreenNameGenerator.generateRandomScreenName() ;
 
+            this.players[socket.id] = new Player(screenName ) ; 
+
+            socket.emit('playerDetails', this.players[socket.id].player) ; 
+
             socket.emit('screenName', screenName)
 
-            socket.on('disconnect', function () {
+            socket.on('disconnect',  () =>  {
                 console.log('socket disconnected : ' + socket.id)
+                if (this.players && this.players[socket.id]) {
+                    delete this.players[socket.id]
+                }
             })
 
             // This shit will probbally receive event chatMessages from client
-
             socket.on('chatMessage', function (chatMessage: ChatMessage )  {
                 console.log("receive event from the client bra")
                 socket.broadcast.emit('chatMessage', chatMessage) ; 

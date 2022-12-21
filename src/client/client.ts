@@ -7,10 +7,14 @@ type ScreenName = {
     name: string
     abbreviation: string
 }
+type Player = {
+    score: number
+    screenName: ScreenName
+}
 
 class Client {
     private socket: SocketIOClient.Socket
-    private screenName!: ScreenName
+    private player!: Player 
 
     constructor() {
         this.socket = io()
@@ -19,16 +23,23 @@ class Client {
             console.log('connect')
         })
 
-        this.socket.on('screenName', (screenName: ScreenName) =>  {
-            this.screenName  = screenName ; 
-            $('.screenName').text(this.screenName.name) ; 
-        })
+        // No need for since since the screen name is included in players object
+        // this.socket.on('screenName', (screenName: ScreenName) =>  {
+        //     this.screenName  = screenName ; 
+        //     $('.screenName').text(this.screenName.name) ; 
+        // })
 
         this.socket.on('disconnect', function (message: any) {
             console.log('disconnect ' + message)
             location.reload()
         })
         
+        // this will receive the emit player event and also the player obect from the server
+        this.socket.on('playerDetails', (player: Player) => {
+            this.player = player ; 
+            $('.screenName').text(player.screenName.name)
+            $('.score').text(player.score)
+        })
         // 
         this.socket.on('chatMessage', (chatMessage: ChatMessage) => {
             $('#messages').append(
@@ -63,11 +74,11 @@ class Client {
             // as written in the note this is emiting and also define event is chatMessage
             this.socket.emit('chatMessage', <ChatMessage>{
                 message: messageText, 
-                from : this.screenName.abbreviation, 
+                from : this.player.screenName.abbreviation, 
             })
             // this will append in to the user to send the messges
             $('#messages').append(
-                "<li><span class='float-left'><span class='circle'> " + this.screenName.abbreviation + " </span></span><div class='myMessage'>" +
+                "<li><span class='float-left'><span class='circle'> " + this.player.screenName.abbreviation + " </span></span><div class='myMessage'>" +
                 messageText +
                 '</div></li>'
             )

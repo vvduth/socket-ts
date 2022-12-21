@@ -17,13 +17,20 @@ class Client {
         this.socket.on('connect', function () {
             console.log('connect');
         });
-        this.socket.on('screenName', (screenName) => {
-            this.screenName = screenName;
-            $('.screenName').text(this.screenName.name);
-        });
+        // No need for since since the screen name is included in players object
+        // this.socket.on('screenName', (screenName: ScreenName) =>  {
+        //     this.screenName  = screenName ; 
+        //     $('.screenName').text(this.screenName.name) ; 
+        // })
         this.socket.on('disconnect', function (message) {
             console.log('disconnect ' + message);
             location.reload();
+        });
+        // this will receive the emit player event and also the player obect from the server
+        this.socket.on('playerDetails', (player) => {
+            this.player = player;
+            $('.screenName').text(player.screenName.name);
+            $('.score').text(player.score);
         });
         // 
         this.socket.on('chatMessage', (chatMessage) => {
@@ -41,10 +48,10 @@ class Client {
             // as written in the note this is emiting and also define event is chatMessage
             this.socket.emit('chatMessage', {
                 message: messageText,
-                from: this.screenName.abbreviation,
+                from: this.player.screenName.abbreviation,
             });
             // this will append in to the user to send the messges
-            $('#messages').append("<li><span class='float-left'><span class='circle'> " + this.screenName.abbreviation + " </span></span><div class='myMessage'>" +
+            $('#messages').append("<li><span class='float-left'><span class='circle'> " + this.player.screenName.abbreviation + " </span></span><div class='myMessage'>" +
                 messageText +
                 '</div></li>');
             this.scrollChatWindow();
