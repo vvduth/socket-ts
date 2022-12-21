@@ -1,6 +1,7 @@
 type ChatMessage = {
-    message: String, 
-    from : String ,
+    message: string,
+    from: string,
+    type: 'playerMessage' | 'gameMessage'
 }
 
 type ScreenName = {
@@ -11,10 +12,18 @@ type Player = {
     score: number
     screenName: ScreenName
 }
+type GameState = {
+    id: number
+    title: string
+    logo: string
+    gamePhase: number
+    gameClock: number
+    duration: number
+}
 
 class Client {
     private socket: SocketIOClient.Socket
-    private player!: Player 
+    private player!: Player
 
     constructor() {
         this.socket = io()
@@ -33,23 +42,56 @@ class Client {
             console.log('disconnect ' + message)
             location.reload()
         })
-        
+
         // this will receive the emit player event and also the player obect from the server
         this.socket.on('playerDetails', (player: Player) => {
-            this.player = player ; 
+            this.player = player;
             $('.screenName').text(player.screenName.name)
             $('.score').text(player.score)
         })
         // 
         this.socket.on('chatMessage', (chatMessage: ChatMessage) => {
-            $('#messages').append(
-                "<li><span class='float-right'><span class='circle'>" +
+            if (chatMessage.type === 'gameMessage') {
+                $('#messages').append(
+                    "<li><span class='float-left'><span class='circle'>" +
+                    chatMessage.from +
+                    "</span></span><div class='gameMessage'>" +
+                    chatMessage.message +
+                    '</div></li>')
+            } else {
+                $('#messages').append(
+                    "<li><span class='float-right'><span class='circle'>" +
                     chatMessage.from +
                     "</span></span><div class='otherMessage'>" +
                     chatMessage.message +
                     '</div></li>'
-            )
+                )
+            }
             this.scrollChatWindow()
+        })
+        this.socket.on('GameStates', (gameStates: GameState[]) => {
+            gameStates.forEach((gameState) => {
+                let gid = gameState.id;
+                if (gameState.gameClock >= 0) {
+                    if (gameState.gameClock >= gameState.duration) {
+                        // time is out so start a new game
+                        $('#gamephase' + gid).text(
+                            "New game, guess the lucky number"
+                        )
+                    }
+                    $('#timer' + gid).css('display', 'block')
+                    $('#timer' + gid).text(gameState.gameClock.toString())
+                    var progressParent =
+                        (gameState.gameClock / gameState.duration) * 100
+                    $('#timerBar' + gid).css('background-color', '#4caf50')
+                    $('#timerBar' + gid).css('width', progressParent + '%')
+                } else {
+                    $('#timerBar' + gid).css('background-color', '#ff0000')
+                    $('#timerBar' + gid).css('width', '100%')
+                    $('#timer' + gid).css('display', 'none')
+                    $('#gamephase' + gid).text('Game Closed')
+                }
+            })
         })
     }
 
@@ -57,24 +99,24 @@ class Client {
         $('#messages').animate(
             {
                 scrollTop: $('#messages li:last-child').position().top,
-            }, 
+            },
             500
         )
-        setTimeout(()=> {
+        setTimeout(() => {
             let messageLength = $('#messages li');
-            if(messageLength.length > 10 ) 
-            if (messageLength.length > 10 ) {
-                messageLength.eq(0).remove()
-            }
+            if (messageLength.length > 10)
+                if (messageLength.length > 10) {
+                    messageLength.eq(0).remove()
+                }
         }, 500)
     }
     public sendMessage() {
-        let messageText = $('#messageText').val() as String ; 
-        if (messageText?.toString().length > 0) {   
+        let messageText = $('#messageText').val() as String;
+        if (messageText?.toString().length > 0) {
             // as written in the note this is emiting and also define event is chatMessage
             this.socket.emit('chatMessage', <ChatMessage>{
-                message: messageText, 
-                from : this.player.screenName.abbreviation, 
+                message: messageText,
+                from: this.player.screenName.abbreviation,
             })
             // this will append in to the user to send the messges
             $('#messages').append(
@@ -82,7 +124,7 @@ class Client {
                 messageText +
                 '</div></li>'
             )
-            this.scrollChatWindow() ;
+            this.scrollChatWindow();
             $('#messageText').val('')
         }
     }
