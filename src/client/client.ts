@@ -25,6 +25,7 @@ type GameState = {
 class Client {
     private socket: SocketIOClient.Socket
     private player!: Player
+    private inThisRound: boolean[] = [false, false, false]
 
     constructor() {
         this.socket = io()
@@ -50,6 +51,16 @@ class Client {
             $('.screenName').text(player.screenName.name)
             $('.score').text(player.score)
         })
+
+        this.socket.on(
+            'confirmGuess',
+            (gameId: number, guess: number, score: number) => {
+                this.inThisRound[gameId] = true
+                $('#submitButton' + gameId + (guess - 1)).prop('disabled', true)
+                $('#goodLuckMessage' + gameId).css('display', 'inline-block')
+                $('.score').text(score)
+            }
+        )
         // 
         this.socket.on('chatMessage', (chatMessage: ChatMessage) => {
             if (chatMessage.type === 'gameMessage') {
@@ -97,6 +108,9 @@ class Client {
                         $('#gamephase' + gid).text(
                             "New game, guess the lucky number"
                         )
+                        for(let x = 0 ; x < 10 ; x++) {
+                            $('#submitButton' + gid + x).prop('disabled', false)
+                        }
                     }
                     if (gameState.gameClock === gameState.duration - 5) {
                         $('#resultAlert' + gid)
@@ -114,16 +128,32 @@ class Client {
                     $('#timerBar' + gid).css('width', '100%')
                     $('#timer' + gid).css('display', 'none')
                     $('#gamephase' + gid).text('Game Closed')
+                    for (let x = 0; x < 10; x++) {
+                        $('#submitButton' + gid + x).prop('disabled', true)
+                    }
+                    $('#goodLuckMessage' + gid).css('display', 'none')
 
                     if (gameState.gameClock === -2 && gameState.result !== -1) {
                         $('#resultValue' + gid).text(gameState.result)
                         $('#resultAlert' + gid).fadeIn(100)
+                        $('#submitButton' + gid + (gameState.result - 1)).css(
+                            'animation',
+                            'glowing 1000ms infinite'
+                        )
+                        setTimeout(() => {
+                            $(
+                                '#submitButton' + gid + (gameState.result - 1)
+                            ).css('animation', '')
+                        }, 4000)
                     }
                 }
             })
         })
     }
 
+    public submitGuess(gameId: number, guess: number) {
+        this.socket.emit('submitGuess', gameId, guess)
+    }
     private scrollChatWindow = () => {
         $('#messages').animate(
             {

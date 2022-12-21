@@ -18,12 +18,12 @@ class App {
     private port: number
 
     private io: socketIO.Server
-    private games: {[id: number]: LuckyNumbersGame} = {}
-    private randomScreenNameGenerator: RandomScreenNAmeGenerator 
+    private games: { [id: number]: LuckyNumbersGame } = {}
+    private randomScreenNameGenerator: RandomScreenNAmeGenerator
     // hash map probably
-    private players: {[id: string]: Player} = {} 
+    private players: { [id: string]: Player } = {}
 
-    
+
 
     constructor(port: number) {
         this.port = port
@@ -47,24 +47,49 @@ class App {
         this.server = new http.Server(app)
         this.io = new socketIO.Server(this.server)
 
-        this.games[0] = new LuckyNumbersGame(0, 'Bronze Game', '🥉', 10, this.updateChat)
-        this.games[1] = new LuckyNumbersGame(1, 'Silver Game', '🥈', 16, this.updateChat)
-        this.games[2] = new LuckyNumbersGame(2, 'Gold Game', '🥇', 35, this.updateChat)
+        this.games[0] = new LuckyNumbersGame(
+            0,
+            'Bronze Game',
+            '🥉',
+            10,
+            1,
+            this.players,
+            this.updateChat
+        )
+        this.games[1] = new LuckyNumbersGame(
+            1,
+            'Silver Game',
+            '🥈',
+            16,
+            2,
+            this.players,
+            this.updateChat
+        )
+        this.games[2] = new LuckyNumbersGame(
+            2,
+            'Gold Game',
+            '🥇',
+            35,
+            10,
+            this.players,
+            this.updateChat
+        )
+
 
         this.randomScreenNameGenerator = new RandomScreenNAmeGenerator()
 
         this.io.on('connection', (socket: socketIO.Socket) => {
             console.log('a user connected : ' + socket.id)
 
-            let screenName = this.randomScreenNameGenerator.generateRandomScreenName() ;
+            let screenName = this.randomScreenNameGenerator.generateRandomScreenName();
 
-            this.players[socket.id] = new Player(screenName ) ; 
+            this.players[socket.id] = new Player(screenName);
 
-            socket.emit('playerDetails', this.players[socket.id].player) ; 
+            socket.emit('playerDetails', this.players[socket.id].player);
 
             socket.emit('screenName', screenName)
 
-            socket.on('disconnect',  () =>  {
+            socket.on('disconnect', () => {
                 console.log('socket disconnected : ' + socket.id)
                 if (this.players && this.players[socket.id]) {
                     delete this.players[socket.id]
@@ -72,22 +97,30 @@ class App {
             })
 
             // This shit will probbally receive event chatMessages from client
-            socket.on('chatMessage', function (chatMessage: ChatMessage )  {
+            socket.on('chatMessage', function (chatMessage: ChatMessage) {
                 console.log("receive event from the client bra")
-                socket.broadcast.emit('chatMessage', chatMessage) ; 
+                socket.broadcast.emit('chatMessage', chatMessage);
+            })
+
+            socket.on('submitGuess', (gameId: number, guess: number) => {
+                if (guess >= 0 && guess <= 10) {
+                    if (this.games[gameId].submitGuess(socket.id, guess)) {
+                        socket.emit('confirmGuess', gameId, guess, this.players[socket.id].player.score)
+                    }
+                }
             })
         })
 
         setInterval(() => {
             this.io.emit('GameStates', [
-                this.games[0].gameState ,
-                this.games[1].gameState , 
+                this.games[0].gameState,
+                this.games[1].gameState,
                 this.games[2].gameState
-             ])
+            ])
         }, 1000)
     }
     public updateChat = (chatMessage: ChatMessage) => {
-        this.io.emit('chatMessage', chatMessage) ; 
+        this.io.emit('chatMessage', chatMessage);
     }
 
     public Start() {
