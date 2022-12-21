@@ -7,6 +7,7 @@ export default class LuckyNumbersGame {
     private _duration: number
     private _gamePhase: number = 0
     private _gameClock: number = 0
+    private _result: number = -1
     private _gameState!: GameState;
     private _updateChatCallBack: (chatMessage: ChatMessage) => void ; 
 
@@ -35,7 +36,15 @@ export default class LuckyNumbersGame {
                     })
                 }
             } else if (this._gamePhase === 2) {
-                if (this._gameClock <= -5) { this._gamePhase = 0 }
+                if (this._gameClock === -2 ) {
+                    this._result = Math.floor(Math.random() * 10 ) +1  ; 
+                    this._updateChatCallBack(<ChatMessage>{
+                        message: 'Result: ' +this._result ,
+                        from : this._logo, 
+                        type: 'gameMessage' 
+                    })
+                }
+                else if (this._gameClock <= -5) { this._gamePhase = 0 }
             }
             this._gameState = {
                 id: this._id,
@@ -44,6 +53,7 @@ export default class LuckyNumbersGame {
                 gamePhase: this._gamePhase,
                 gameClock: this._gameClock,
                 duration: this._duration,
+                result: this._result ,
             }
             this._gameClock -= 1
         }, 1000)
