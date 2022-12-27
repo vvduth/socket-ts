@@ -6,4 +6,6 @@ export type GameState = {
     gameClock: number 
     duration: number 
     result: number
+    winners: string [] 
+    winnersCalculated: boolean 
 }

@@ -12,21 +12,29 @@ export default class LuckyNumbersGame {
     private _players: { [id: string]: Player } = {}
     private _guesses: { [id: string]: number[] } = {}
     private _enterPoints: number
+    private _winPoints: number
+    private _winners!: string[]
+    private _winnersCalculated: boolean = false
     private _updateChatCallBack: (chatMessage: ChatMessage) => void ; 
+    private _sendPlayerDetailsCB: (playerSocketID: string) => void
 
-    constructor(id: number, title: string, logo: string, duration: number , enterPoints: number,
-        players: { [id: string]: Player }, updateChatCallBack: (chatMessage: ChatMessage) => void) {
+    constructor(id: number, title: string, logo: string, duration: number , enterPoints: number, winPoints: number,
+        sendPlayerDetailsCB: (playerSocketID: string) => void, players: { [id: string]: Player }, updateChatCallBack: (chatMessage: ChatMessage) => void) {
         this._id = id
         this._title = title
         this._logo = logo
         this._duration = duration
         this._players = players
+        this._winPoints = winPoints
+        this._sendPlayerDetailsCB = sendPlayerDetailsCB
         this._enterPoints = enterPoints
         this._updateChatCallBack = updateChatCallBack 
         setInterval(() => {
             if (this._gamePhase === 0) {
                 this._gameClock = this._duration
                 this._gamePhase = 1
+                this._winners = []
+                this._winnersCalculated = false
                 this._guesses = {}
                 this._updateChatCallBack(<ChatMessage>{
                     message: 'New Game',
@@ -52,6 +60,14 @@ export default class LuckyNumbersGame {
                     })
                 }
                 else if (this._gameClock <= -5) { this._gamePhase = 0 }
+            } else if (this._gameClock === -3) {
+                //get winners
+                this._winners = this.calculateWinners(this._result)
+                this._winners.forEach((w) => {
+                    this._players[w].adjustScore(this._winPoints)
+                    this._sendPlayerDetailsCB(w)
+                })
+                this._winnersCalculated = true
             }
             this._gameState = {
                 id: this._id,
@@ -60,7 +76,9 @@ export default class LuckyNumbersGame {
                 gamePhase: this._gamePhase,
                 gameClock: this._gameClock,
                 duration: this._duration,
-                result: this._result ,
+                result: this._result,
+                winners: this._winners,
+                winnersCalculated: this._winnersCalculated,
             }
             this._gameClock -= 1
         }, 1000)
@@ -68,7 +86,7 @@ export default class LuckyNumbersGame {
     public get gameState() {
         return this._gameState
     }
-    public submitGuess(playerSocketId: string, guess: number ): boolean {
+    public submitGuess(playerSocketId: string, guess: number): boolean {
         if (!this._guesses[playerSocketId]) {
             this._guesses[playerSocketId] = []
         }
@@ -76,12 +94,25 @@ export default class LuckyNumbersGame {
         this._guesses[playerSocketId].push(guess)
         if (this._guesses[playerSocketId].length === 1) {
             let chatMessage = <ChatMessage>{
-                message: this._players[playerSocketId].screenName.name + " is playing", 
-                from: this._logo, 
+                message:
+                    this._players[playerSocketId].screenName.name +
+                    ' is playing',
+                from: this._logo,
                 type: 'gameMessage',
             }
-            this._updateChatCallBack(chatMessage) ; 
+            this._updateChatCallBack(chatMessage)
         }
         return true
+    }
+    private calculateWinners(number: number): string[] {
+        let ret: string[] = []
+        for (let playerSocketId in this._guesses) {
+            for (let guess in this._guesses[playerSocketId]) {
+                if (number === this._guesses[playerSocketId][guess]) {
+                    ret.push(playerSocketId)
+                }
+            }
+        }
+        return ret
     }
 }
